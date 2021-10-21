@@ -10,17 +10,17 @@ You can select an existing volume group or define a new one, then optionally, yo
 
 ## Files Installed
 
-`/etc/udev/rules.d/10-autolvm.rules`
-`/usr/sbin/autolvm`
+`/etc/udev/rules.d/10-autolvm.rules`  
+`/usr/sbin/autolvm`  
 
 ## Usage
 
 Once installed and configured, no action is required from the user. `autolvm` can be run to gather information or reconfigure the automatically expanded target at any time.
 
-# Options
+### Options
 
-`autolvm [--help | -h | -?]`  Provides usage and examples
-`autolvm --list`  Displays the current volume group (and optionally logical volume) target
-`autolvm [VG] [LV]` Reconfigures the target(s) to the arguments provided
+`autolvm [--help | -h | -?]`  Provides usage and examples  
+`autolvm --list`  Displays the current volume group (and optionally logical volume) target  
+`autolvm [VG] [LV]` Reconfigures the target(s) to the arguments provided  
 
 With no arguments, `--list` will display the current selection(s) and offer reconfiguration. 
