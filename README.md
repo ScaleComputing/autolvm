@@ -19,8 +19,8 @@ Once installed and configured, no action is required from the user. `autolvm` ca
 
 ### Options
 
-`autolvm [--help | -h | -?]`  Provides usage and examples  
+`autolvm [ --help | -h | -? ]`  Provides usage and examples  
 `autolvm --list`  Displays the current volume group (and optionally logical volume) target  
-`autolvm [VG] [LV]` Reconfigures the target(s) to the arguments provided  
+`autolvm [ VG_name ] [ LV_name ]` Reconfigures the target(s) to the arguments provided  
 
 With no arguments, `--list` will display the current selection(s) and offer reconfiguration. 
