@@ -28,7 +28,7 @@ EOF
 	fi
 	if [[ $3 != "none" ]]; then
 		if [ `lvs | grep $3 | wc -l` -lt 1 ]; then
-			lvcreate -1 100%VG -n $3 $2
+			lvcreate -l 100%FREE -n $3 $2
 		else
 			lvextend /dev/${2}/$3 /dev/${1}1
 		fi
