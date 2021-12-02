@@ -1,0 +1,18 @@
+#!/usr/bin/bash
+cd files; tar cf ../payload/files.tar ./*; sync
+cd ../payload; tar cf ../payload.tar ./*; sync
+rm files.tar; cd ..
+
+if [ -e "payload.tar" ]; then
+	gzip payload.tar
+	if [ -e "payload.tar.gz" ]; then
+		cat decompress payload.tar.gz > autolv_installer.bsx
+	else
+		echo "can't find payload tarball"; exit 1
+	fi
+else
+	echo "payload.tar can't be found"; exit 1
+fi
+
+echo "self extracting installer created!"
+rm payload.tar.gz; sync; exit 0
