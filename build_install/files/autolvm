@@ -1,0 +1,159 @@
+#!/bin/bash
+
+drivelist=(`cat /proc/partitions | grep vd | awk '{print $4}' | cut -c 1-3 | uniq`)
+pvolumes=(`pvs | grep vd | awk '{print $1}'`)
+udevrule='/etc/udev/rules.d/10-autolvm.rules'
+
+cleanup(){
+	unset drivelist; unset pvolumes; unset volgroup
+	sync
+}
+
+newvol(){
+	fdisk /dev/$1 <<EOF
+n
+p
+1
+
+
+t
+8e
+w
+EOF
+	pvcreate /dev/${1}1
+	if [ `vgs | grep $2 | wc -l` -lt 1 ]; then
+		vgcreate $2 /dev/${1}1
+	else
+		vgextend $2 /dev/${1}1
+	fi
+	if [[ $3 != "none" ]]; then
+		if [ `lvs | grep $3 | wc -l` -lt 1 ]; then
+			lvcreate -1 100%VG -n $3 $2
+		else
+			lvextend /dev/${2}/$3 /dev/${1}1
+		fi
+	fi
+	sync; sleep 1
+}
+
+setlvm(){
+	echo "[ No target volume group specified ]"
+	echo "Please select a target by typing the name: "; sleep 1
+	vgroups=(`vgs | awk '{print $1}'`); vgroups=("${vgroups[@]:1}")
+	vgtarget=""
+	while [[ -z $vgtarget ]]; do
+		echo ""; echo "Detected volume groups: "; sleep 1		
+		for vol in ${vgroups[@]}; do
+			printf " [ $vol ]  "
+		done
+		echo ""; echo ""
+		read -p 'Volume group name: ' vgtarget
+		if [[ -z $vgtarget ]]; then
+			echo ""; sleep 1
+			echo "Please input a volume group to target"; echo ""
+		fi
+	done
+	if [[ ! "${vgroups[*]}" =~ "${vgtarget}" ]]; then
+		echo " New volume group will automatically be created "
+		echo " when additional storage is added to the system "
+	fi
+	echo "Target all new capacity expansion to a logical volume? "
+	read -p "[OPTIONAL - Type 'YES' or press 'enter' to skip]: " lvyes
+	if [[ -z $lvyes ]] || [[ $lvyes != "YES" ]]; then
+		echo 'ACTION=="add", KERNEL=="vd*[!0-9]". RUN+="/usr/sbin/autolvm ${vgtarget}"' > $udevrule
+	else
+		echo ""; sleep 1
+		echo "[ Select an existing or type in a new logical volume ]"
+		lvols=(`lvs | awk '{print $1}'`); lvols=("${lvols[@]:1}")
+		lvtarget=""
+		while [[ -z $lvtarget ]]; do
+			echo ""; echo "Detected logical volumes: "; sleep 1
+			for vol in ${lvols[@]}; do
+				printf " [ $vol ]  "
+			done
+			echo ""; echo ""
+			read -p "Logical volume name: [Type 'x' to skip]: " lvtarget
+			if [[ -z $lvtarget ]]; then
+				echo ""; sleep 1
+				echo "Please input a volume group to target, or type 'x' to skip and exit"; echo ""
+			elif [[ $lvtarget == "x" ]]; then
+				echo "Logical volume skipped, setting volume group.."
+				echo 'ACTION=="add", KERNEL=="vd*[!0-9]". RUN+="/usr/sbin/autolvm ${vgtarget}"' > $udevrule
+			else
+				echo "Setting volume group and logical volume targets.."
+				echo 'ACTION=="add", KERNEL=="vd*[!0-9]". RUN+="/usr/sbin/autolvm ${vgtarget} ${lvtarget}"' > $udevrule
+				if [[ ! "${lvols[*]}" =~ "${lvtarget}" ]]; then
+					echo " New logical volume will automatically be created "
+					echo " when additional storage is added to the system "
+				fi
+			fi
+		done
+	fi
+	# Cleanup vars / arrays
+	unset vgroups; unset vgtarget; unset lvyes
+	unset lvols; unset lvtarget
+	sync
+}
+
+listcfg(){
+	vgtarget=`cat $udevrule | tr -d '"' | awk '{print $4}'`
+	lvtarget=`cat $udevrule | tr -d '"' | awk '{print $5}'`
+	if [[ -z $lvtarget ]]; then
+		lvtarget="[No target]"
+	fi
+	echo ""; echo " Auto-expand targets: "; sleep 1
+	echo "  Volume group to expand = $vgtarget "
+	echo "  Logical volume to expand = $lvtarget "; sleep 2
+	unset vgtarget; unset lvtarget
+}
+
+# Help dialog
+if [[ $1 == "--help" ]] || [[ $1 == "-h" ]] || [[ $1 == "?" ]]; then
+	echo ""
+	echo "  To set target volume grouo or logical volume (both optional): "
+	echo ""; echo "    autolvm [volgroup] [logicalvol] "
+	echo ""; echo "     ex. 'autolvm VG_1 LV_1' "
+	echo ""; echo "    For this help menu: "
+	echo "     autolvm [ --help | -h | ? ] "
+	echo ""; echo "    To list current targets: "
+	echo "     autolvm --list "; sleep 2; exit 3
+fi
+
+# Show current VG/LV targets using --list
+if [[ $1 == "--list" ]]; then
+	listcfg
+	cleanup; exit 4
+fi
+
+# Handle arguments; if none provided, bring up setlvm dialog to set values
+# otherwise, proceed with the VG only, or VG/LV if set
+if [ $# -eq 0 ]; then
+	listcfg
+	echo ""; read -p "Type 'YES' to reconfigure, or press 'enter' to exit: " reconf
+	if [[ $reconf == "YES" ]]; then
+		setlvm
+		echo ""; udevadm control --reload-rules
+		echo " [ Targets set and ready to accept new capacity! ]"; sleep 2
+		cleanup; exit 2
+	else
+		cleanup; exit 0
+	fi
+elif [ $# -eq 1 ]; then
+	volgroup="$1"
+	storvol="none"
+else
+	volgroup="$1"
+	storvol="$2"
+fi
+
+# Iterate through drives; ingest any new vd* drives and add to VG or VG/LV
+for drive in ${drivelist[@]}; do
+	if [ `echo ${pvolumes[@]} | grep $drive | wc -l` -eq 0 ]; then
+		if [ `cat /proc/partitions | grep $drive | wc -l` -gt 1 ]; then
+			(echo "o"; echo "w") | fdisk /dev/$drive; sync
+		fi
+		newvol $drive $volgroup $storvol
+		pvolumes+=( $drive )
+	fi
+done
+cleanup; exit 0
