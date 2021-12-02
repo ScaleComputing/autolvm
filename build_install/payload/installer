@@ -1,0 +1,81 @@
+#!/usr/bin/bash
+echo "[ Unpacking and copying files ] "; sleep 2
+if [ -e /usr/sbin/autolvm ]; then
+	rm -f /usr/sbin/autolvm
+fi
+if [ -e /etc/udev/rules.d/10-autolvm.rules ]; then
+	rm -f /etc/udev/rules.d/10-autolvm.rules
+fi
+TEMP="/tmp/autolvm_inst"
+mkdir $TEMP
+tar xf ./files.tar -C ${TEMP}/
+cp ${TEMP}/autolvm /usr/sbin/
+chmod 755 /usr/sbin/autolvm
+echo "[ User Configuration ]"; sleep 1
+echo ""
+echo "  Confirm the target logical volume to autoexpand by typing out the name: "
+echo "  (note: to create a new volume, input desired name) "; echo ""
+vgroups=(`vgs | awk '{print $1}'`); vgroups=("${vgroups[@]:1}")
+vgtarget=""
+while [[ -z $vgtarget ]]; do
+	echo ""; echo "Detected volume groups: "; sleep 1		
+	for vol in ${vgroups[@]}; do
+		printf " [ $vol ]  "
+	done
+	echo ""; echo ""
+	read -p 'Volume group name: ' vgtarget
+	if [[ -z $vgtarget ]]; then
+		echo ""; sleep 1
+		echo "Please input a volume group to target"; echo ""
+	fi
+done
+if [[ ! "${vgroups[*]}" =~ "${vgtarget}" ]]; then
+	echo ""; echo "NOTE: New volume group will be created when the first"
+	echo "additional storage is added"; sleep 1
+fi
+echo "";echo "Target all new capacity expansion to a single logical volume?" 
+read -p "[OPTIONAL - Type 'YES' or press 'enter' to skip]: " lvyes
+if [[ -z $lvyes ]] || [[ $lvyes != "YES" ]]; then
+	sed -i "s/REPLACE/${vgtarget}/" ${TEMP}/10-autolvm.rules
+	sed -i "s/THIS//" ${TEMP}/10-autolvm.rules
+else
+	echo ""
+	echo " [ Select an existing or type in a new logical volume ]"
+	lvols=(`lvs | awk '{print $1}'`); lvols=("${lvols[@]:1}")
+	lvtarget=""
+	while [[ -z $lvtarget ]]; do
+		echo ""; echo "Detected logical volumes: "; sleep 1
+		for vol in ${lvols[@]}; do
+			printf " [ $vol ]  "
+		done
+		echo ""; echo ""
+		read -p "Logical volume name: [Type 'x' to skip]: " lvtarget
+		if [[ -z $lvtarget ]]; then
+			echo ""; sleep 1
+			echo "Please input a volume group to target, or type 'x' to skip and exit"; echo ""
+		elif [[ $lvtarget == "x" ]]; then
+			echo "Logical volume skipped, setting volume group.."
+			sed -i "s/REPLACE/${vgtarget}/" ${TEMP}/10-autolvm.rules
+			sed -i "s/THIS//" ${TEMP}/10-autolvm.rules
+		else
+			echo "Setting volume group and logical volume targets.."
+			sed -i "s/REPLACE/${vgtarget}/" ${TEMP}/10-autolvm.rules
+			sed -i "s/THIS/${lvtarget}/" ${TEMP}/10-autolvm.rules
+			if [[ ! "${lvols[*]}" =~ "${lvtarget}" ]]; then
+				echo ""; echo "NOTE: Logical volume will be created when the"
+				echo "additional storage is added"
+			fi
+		fi
+	done
+fi
+
+echo ""
+echo "Selection saved - finishing installation "; echo ""; sleep 1
+cp ${TEMP}/10-autolvm.rules /etc/udev/rules.d/
+chmod 744 /etc/udev/rules.d/10-autolvm.rules
+echo "[ Restarting udev.. ] "; sleep 3
+unset targetlvol
+udevadm control --reload-rules; sync
+echo "[ Cleaning up ] "; sleep 2
+rm -rf ${TEMP}/*; rm -r $TEMP; sync
+echo "[ * Installation complete! * ] "; echo ""
