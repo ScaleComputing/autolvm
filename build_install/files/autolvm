@@ -39,14 +39,14 @@ EOF
 checkdefault(){
 	vgroups=(`vgs | awk '{print $1}'`); vgroups=("${vgroups[@]:1}")
 	lvols=(`lvs | awk '{print $1}'`); lvols=("${lvols[@]:1}")
-	if [[ "${vgroups[*]}" =~ "turnkey" -a "${lvols[*]}" =~ "root" ]]; then
+	if [[ "${vgroups[*]}" =~ "turnkey" && "${lvols[*]}" =~ "root" ]]; then
 	        echo "[ Default configuration detected ]"; sleep 1
 	        echo ""; echo "Default volume group: [ turnkey ]"
 	        echo "Default logical volume: [ root ]"; sleep 1
-	        echo ""; echo "Press ENTER to use the default configuration, or"
-	        read -p "any other key to select a new storage target: " defaults
+	        echo ""; echo "Press ENTER to use the default configuration, or any other key to select a new storage target"
+	        read -p "Selection [enter]: " defaults
 	        if [[ -z $defaults ]]; then
-			echo "Setting default targets: [ turnkey / root ]"
+			echo ""; echo "Setting default targets: [ turnkey / root ]"
                 	echo 'ACTION=="add", KERNEL=="vd*[!0-9]". RUN+="/usr/sbin/autolvm turnkey root"' > $udevrule
 		else
 			setlvm
