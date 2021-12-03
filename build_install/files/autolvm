@@ -6,7 +6,7 @@ udevrule='/etc/udev/rules.d/10-autolvm.rules'
 
 cleanup(){
 	unset drivelist; unset pvolumes; unset volgroup
-	sync
+	unset storvol; sync
 }
 
 newvol(){
@@ -36,9 +36,29 @@ EOF
 	sync; sleep 1
 }
 
+checkdefault(){
+	vgroups=(`vgs | awk '{print $1}'`); vgroups=("${vgroups[@]:1}")
+	lvols=(`lvs | awk '{print $1}'`); lvols=("${lvols[@]:1}")
+	if [[ "${vgroups[*]}" =~ "turnkey" && "${lvols[*]}" =~ "root" ]]; then
+	        echo "[ Default configuration detected ]"; sleep 1
+	        echo ""; echo "Default volume group: [ turnkey ]"
+	        echo "Default logical volume: [ root ]"; sleep 1
+	        echo ""; echo "Press ENTER to use the default configuration, or any other key to select a new storage target"
+	        read -p "Selection [enter]: " defaults
+	        if [[ -z $defaults ]]; then
+			echo ""; echo "Setting default targets: [ turnkey / root ]"
+                	echo 'ACTION=="add", KERNEL=="vd*[!0-9]". RUN+="/usr/sbin/autolvm turnkey root"' > $udevrule
+		else
+			setlvm
+		fi
+	else
+		setlvm
+	fi
+}
+
 setlvm(){
-	echo "[ No target volume group specified ]"
-	echo "Please select a target by typing the name: "; sleep 1
+	echo "[ User configuration ]"
+	echo "Please select a target volume group by typing the name: "; sleep 1
 	vgroups=(`vgs | awk '{print $1}'`); vgroups=("${vgroups[@]:1}")
 	vgtarget=""
 	while [[ -z $vgtarget ]]; do
@@ -125,13 +145,14 @@ if [[ $1 == "--list" ]]; then
 	cleanup; exit 4
 fi
 
-# Handle arguments; if none provided, bring up setlvm dialog to set values
-# otherwise, proceed with the VG only, or VG/LV if set
+# Handle arguments; if none provided, bring up checkdefault dialog 
+# if default configuration isn't available, call setlvm to set values
+# or fallback and proceed with the VG only, or VG/LV if set
 if [ $# -eq 0 ]; then
 	listcfg
 	echo ""; read -p "Type 'YES' to reconfigure, or press 'enter' to exit: " reconf
 	if [[ $reconf == "YES" ]]; then
-		setlvm
+		checkdefault
 		echo ""; udevadm control --reload-rules
 		echo " [ Targets set and ready to accept new capacity! ]"; sleep 2
 		cleanup; exit 2
