@@ -6,7 +6,8 @@ This script and udev rule 'listen' for new attached block devices on a system an
 ## Installation
 
 The `autolv_installer.bsx` deploys the changes/script and provides the initial user configuration. (see release notes for installation one-liner)
-You can select an existing volume group or define a new one, then optionally, you can specify a target logical volume.
+A default configuration for Turnkey Linux targeting the turnkey volume group and root logical volume is provided, or you can select an existing volume 
+group or define a new one, then optionally, you can specify a target logical volume.
 
 ## Files Installed
 
@@ -24,3 +25,9 @@ Once installed and configured, no action is required from the user. `autolvm` ca
 `autolvm [ VG_name ] [ LV_name ]` Reconfigures the target(s) to the arguments provided  
 
 With no arguments, `--list` will display the current selection(s) and offer reconfiguration. 
+
+## Installation Build
+
+From the build_install folder:
+
+`chmod +x build && build`  This will produce `autolv_installer.bsx` in the build_install folder.
