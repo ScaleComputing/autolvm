@@ -98,7 +98,7 @@ setlvm(){
 			read -p "Logical volume name: [Type 'x' to skip]: " lvtarget
 			if [[ -z $lvtarget ]]; then
 				echo ""; sleep 1
-				echo "Please input a volume group to target, or type 'x' to skip and exit"; echo ""
+				echo "Please input a volume to target, or type 'x' to skip and exit"; echo ""
 			elif [[ $lvtarget == "x" ]]; then
 				echo "Logical volume skipped, setting volume group.."
 				echo 'ACTION=="add", KERNEL=="vd*[!0-9]". RUN+="/usr/sbin/autolvm ${vgtarget}"' > $udevrule
@@ -133,7 +133,7 @@ listcfg(){
 # Help dialog
 if [[ $1 == "--help" ]] || [[ $1 == "-h" ]] || [[ $1 == "?" ]]; then
 	echo ""
-	echo "  To set target volume grouo or logical volume (both optional): "
+	echo "  To set target volume group or logical volume (both optional): "
 	echo ""; echo "    autolvm [volgroup] [logicalvol] "
 	echo ""; echo "     ex. 'autolvm VG_1 LV_1' "
 	echo ""; echo "    For this help menu: "
