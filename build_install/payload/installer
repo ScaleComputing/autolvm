@@ -79,7 +79,7 @@ if [[ "${vgroups[*]}" =~ "turnkey" && "${lvols[*]}" =~ "root" ]]; then
         echo "Default logical volume: [ root ]"; sleep 1
         echo ""; echo "Press ENTER to use the default configuration, or any other key to select a new storage target"
         read -p "Selection [enter]: " defaults
-        if [[ -z $defaults ]]; then
+        if [[ -z $defaults ]] || [[ $defaults == "enter" ]] || [[ $defaults == "ENTER" ]]; then
 		echo "Setting default targets: [ turnkey / root ]"
                 sed -i "s/REPLACE/turnkey/" ${TEMP}/10-autolvm.rules
                 sed -i "s/THIS/root/" ${TEMP}/10-autolvm.rules
