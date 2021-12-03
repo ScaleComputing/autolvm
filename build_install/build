@@ -1,4 +1,7 @@
 #!/usr/bin/bash
+chmod a+x decompress
+chmod a+x files/autolvm
+chmod a+x payload/installer
 cd files; tar cf ../payload/files.tar ./*; sync
 cd ../payload; tar cf ../payload.tar ./*; sync
 rm files.tar; cd ..
