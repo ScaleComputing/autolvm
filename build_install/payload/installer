@@ -103,6 +103,6 @@ echo "[ * Installation complete! * ] "; echo ""
 inst=$(find / -iname autolv_installer*)
 rmv_inst="/tmp/cleanup.sh"
 echo "#!/usr/bin/bash" > $rmv_inst
-echo "sleep 5" >> $rmv_inst
+echo "sleep 3" >> $rmv_inst
 echo "rm -f ${inst} " >> $rmv_inst
 bash $rmv_inst &>/dev/null &
