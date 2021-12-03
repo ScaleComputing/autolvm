@@ -1,5 +1,5 @@
 # autolvm
-*Little udev-triggered automatic volume expansion for VMs*
+*Basic udev-triggered automatic volume expansion for VMs*
 
 This script and udev rule 'listen' for new attached block devices on a system and automatically add them to an LVM volume group or specific logical volume per the user's preference.
 
