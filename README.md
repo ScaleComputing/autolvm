@@ -1,11 +1,11 @@
 # autolvm
 *Basic udev-triggered automatic volume expansion for BRS*
 
-This script and udev rule 'listen' for new attached block devices on a system and automatically add them to an LVM volume group or specific logical volume per the user's preference.
+This script and udev rule 'listen' for new attached block devices (VSDs) on a system and automatically add them to an LVM volume group or specific logical volume per the user's preference.
 
 ## Installation
 
-The `autolv_installer.bsx` deploys the changes/script and provides the initial user configuration. (see release notes for installation one-liner)
+The `autolv_installer.bsx` deploys the changes/script and provides the initial user configuration. (see latest release for installation one-liner)
 A default configuration for Turnkey Linux targeting the turnkey volume group and root logical volume is provided, or you can select an existing volume 
 group or define a new one, then optionally, you can specify a target logical volume.
 
