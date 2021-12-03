@@ -30,4 +30,4 @@ With no arguments, `--list` will display the current selection(s) and offer reco
 
 From the build_install folder:
 
-`chmod +x build && build`  This will produce `autolv_installer.bsx` in the build_install folder.
+`chmod +x build && ./build`  This will produce `autolv_installer.bsx` in the build_install folder.
