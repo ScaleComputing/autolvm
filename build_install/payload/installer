@@ -11,6 +11,7 @@ mkdir $TEMP
 tar xf ./files.tar -C ${TEMP}/
 cp ${TEMP}/autolvm /usr/sbin/
 chmod 755 /usr/sbin/autolvm
+rm -r /tmp/cleanup.sh &>/dev/null
 
 userconfig(){
 	echo "[ User Configuration ]"; sleep 1; echo ""
@@ -73,7 +74,7 @@ lvtarget=""
 vgtarget=""
 
 if [[ "${vgroups[*]}" =~ "turnkey" && "${lvols[*]}" =~ "root" ]]; then
-        echo "[ Default configuration detected ]"; sleep 1
+        echo "[ Default configuration detected ]"
         echo ""; echo "Default volume group: [ turnkey ]"
         echo "Default logical volume: [ root ]"; sleep 1
         echo ""; echo "Press ENTER to use the default configuration, or any other key to select a new storage target"
@@ -99,3 +100,9 @@ udevadm control --reload-rules; sync
 echo "[ Cleaning up ] "; sleep 2
 rm -rf ${TEMP}/*; rm -r $TEMP; sync
 echo "[ * Installation complete! * ] "; echo ""
+inst=$(find / -iname autolv_installer*)
+rmv_inst="/tmp/cleanup.sh"
+echo "#!/usr/bin/bash" > $rmv_inst
+echo "sleep 5" >> $rmv_inst
+echo "rm -f ${inst} " >> $rmv_inst
+bash $rmv_inst &>/dev/null &
