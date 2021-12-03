@@ -14,7 +14,7 @@ chmod 755 /usr/sbin/autolvm
 
 userconfig(){
 	echo "[ User Configuration ]"; sleep 1; echo ""
-	echo "  Confirm the target logical volume to autoexpand by typing out the name: "
+	echo "  Confirm the target volume group to autoexpand by typing out the name: "
 	echo "  (note: to create a new volume, input desired name) "; echo ""
 	while [[ -z $vgtarget ]]; do
 		echo ""; echo "Detected volume groups: "; sleep 1		
@@ -49,7 +49,7 @@ userconfig(){
 			read -p "Logical volume name: [Type 'x' to skip]: " lvtarget
 			if [[ -z $lvtarget ]]; then
 				echo ""; sleep 1
-				echo "Please input a volume group to target, or type 'x' to skip and exit"; echo ""
+				echo "Please input a volume to target, or type 'x' to skip and exit"; echo ""
 			elif [[ $lvtarget == "x" ]]; then
 				echo "Logical volume skipped, setting volume group.."
 				sed -i "s/REPLACE/${vgtarget}/" ${TEMP}/10-autolvm.rules
