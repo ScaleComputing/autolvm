@@ -29,8 +29,11 @@ EOF
 	if [[ $3 != "none" ]]; then
 		if [ `lvs | grep $3 | wc -l` -lt 1 ]; then
 			lvcreate -l 100%FREE -n $3 $2
+			lvextend /dev/${2}/$3 /dev/${1}1
+			resize2fs /dev/${2}/$3
 		else
 			lvextend /dev/${2}/$3 /dev/${1}1
+			resize2fs /dev/${2}/$3
 		fi
 	fi
 	sync; sleep 1
