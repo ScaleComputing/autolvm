@@ -11,13 +11,13 @@ cleanup(){
 
 newvol(){
 	fdisk /dev/$1 <<EOF
+g
 n
-p
 1
 
 
 t
-8e
+31
 w
 EOF
 	pvcreate /dev/${1}1
