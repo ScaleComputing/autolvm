@@ -95,7 +95,7 @@ t
 8e
 w
 EOF
-	mkfs.ext2 /dev/vda2 &>/dev/null
+	mkfs.ext2 /dev/vda2
 	bootuuid=$(blkid | grep vda2 | awk '{print $2}' | tr -d '"')
 	echo "${bootuuid} /boot    ext2    errors=remount-ro 0      1" >> /etc/fstab
 	mount /dev/vda2 /mnt
@@ -103,13 +103,13 @@ EOF
 	sync; umount /mnt
 	rm -rf /boot/*
 	mount /dev/vda2 /boot
-	grub-mkconfig -o /boot/grub/grub.cfg &>/dev/null
-	grub-install --root-directory=/ --boot-directory=/boot /dev/vda &>/dev/null
-	update-initramfs -u &>/dev/null
+	grub-mkconfig -o /boot/grub/grub.cfg
+	grub-install --root-directory=/ --boot-directory=/boot /dev/vda
+	update-initramfs -u
 }
 
 if [ `mount | grep /boot | wc -l` -lt 1 ]; then
-	echo "[ Setting up boot volume ]"; reclaimboot
+	echo "[ Setting up boot volume ]"; reclaimboot &>/dev/null
 fi
 
 vgroups=(`vgs | awk '{print $1}'`); vgroups=("${vgroups[@]:1}")
