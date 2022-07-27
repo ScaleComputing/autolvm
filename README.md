@@ -26,9 +26,9 @@ Once installed and configured, no action is required from the user. `autolvm` ca
 
 With no arguments, `--list` will display the current selection(s) and offer reconfiguration. 
 
-## Installation Build
+## Building the installer
 
-From the build_install folder:
+If you prefer to build the installer manually, run the following from the build_install folder:
 
 `chmod +x build && ./build`  
 
